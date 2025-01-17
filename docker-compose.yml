@@ -1,0 +1,63 @@
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app_network
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: real_estate
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_worker
+    command: ./wait-for-it.sh postgres:5432 -- celery -A crawler.tasks worker --loglevel=info #tail -f /dev/null #celery -A crawler.tasks worker --loglevel=info
+    # command: celery -A crawler.tasks worker --loglevel=info #tail -f /dev/null #celery -A crawler.tasks worker --loglevel=info
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - app_network
+    volumes:
+      - ./:/app
+    environment:
+      - PYTHONPATH=/app
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi_server
+    command: ./wait-for-it.sh postgres:5432 -- uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    # command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - app_network
+    volumes:
+      - ./:/app
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
