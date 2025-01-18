@@ -150,10 +150,10 @@ This project is licensed under the MIT License. See `LICENSE` for details.
 ---
 
 ## Support
-For any issues, please create an issue in the GitHub repository or contact the maintainers.
+For any problem, please create an issue.
 
 ---
 
-Enjoy building and exploring with the Real Estate Data Crawler and API! 🚀
+Enjoy building and exploring with the Real Estate Data Crawler and API.
 
 
